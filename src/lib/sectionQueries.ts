@@ -42,8 +42,8 @@ export const generateSlug = (name: string): string => {
 export const getSectionBySlug = async (
   slug: string,
 ): Promise<Section | null> => {
-  const { data, error } = await supabase
-    .from("sections")
+  const { data, error } = await (supabase
+    .from("sections") as any)
     .select("*")
     .eq("slug", slug)
     .eq("visible", true)
@@ -56,8 +56,8 @@ export const getSectionBySlug = async (
 export const getSectionByIdOrSlug = async (
   identifier: string,
 ): Promise<Section | null> => {
-  const { data: bySlug } = await supabase
-    .from("sections")
+  const { data: bySlug } = await (supabase
+    .from("sections") as any)
     .select("*")
     .eq("slug", identifier)
     .eq("visible", true)
@@ -65,8 +65,8 @@ export const getSectionByIdOrSlug = async (
 
   if (bySlug) return bySlug as Section;
 
-  const { data: byId } = await supabase
-    .from("sections")
+  const { data: byId } = await (supabase
+    .from("sections") as any)
     .select("*")
     .eq("id", identifier)
     .eq("visible", true)
@@ -85,8 +85,8 @@ export interface SectionItem {
 
 // Get all visible sections ordered by position
 export const getVisibleSections = async (): Promise<Section[]> => {
-  const { data, error } = await supabase
-    .from("sections")
+  const { data, error } = await (supabase
+    .from("sections") as any)
     .select("*")
     .eq("visible", true)
     .order("position", { ascending: true });
@@ -97,8 +97,8 @@ export const getVisibleSections = async (): Promise<Section[]> => {
 
 // Get all sections (admin only)
 export const getAllSections = async (): Promise<Section[]> => {
-  const { data, error } = await supabase
-    .from("sections")
+  const { data, error } = await (supabase
+    .from("sections") as any)
     .select("*")
     .order("position", { ascending: true });
 

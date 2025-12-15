@@ -160,7 +160,6 @@ const ViewAll = () => {
                     item={item}
                     type={itemType}
                     titleLines="full"
-                    priority={index < 6}
                   />
                 )
               })}

@@ -4,12 +4,19 @@ interface TabNavigationContextType {
   activeTab: string;
   setActiveTab: (tabId: string) => void;
   handleTabChange: (tabId: string) => void;
+  // Swipe progress for synchronized indicator animation
+  swipeProgress: number;
+  setSwipeProgress: (progress: number) => void;
+  isDragging: boolean;
+  setIsDragging: (dragging: boolean) => void;
 }
 
 const TabNavigationContext = createContext<TabNavigationContextType | undefined>(undefined);
 
 export const TabNavigationProvider = ({ children }: { children: ReactNode }) => {
   const [activeTab, setActiveTab] = useState<string>("inicio");
+  const [swipeProgress, setSwipeProgress] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
   const scrollPositions = useRef<Record<string, number>>({});
 
   const handleTabChange = useCallback((tabId: string) => {
@@ -17,6 +24,7 @@ export const TabNavigationProvider = ({ children }: { children: ReactNode }) => 
       scrollPositions.current[activeTab] = window.scrollY;
     }
     setActiveTab(tabId);
+    setSwipeProgress(0);
     if (typeof window !== "undefined") {
       requestAnimationFrame(() => {
         const savedPosition = scrollPositions.current[tabId] || 0;
@@ -26,7 +34,15 @@ export const TabNavigationProvider = ({ children }: { children: ReactNode }) => 
   }, [activeTab]);
 
   return (
-    <TabNavigationContext.Provider value={{ activeTab, setActiveTab, handleTabChange }}>
+    <TabNavigationContext.Provider value={{ 
+      activeTab, 
+      setActiveTab, 
+      handleTabChange,
+      swipeProgress,
+      setSwipeProgress,
+      isDragging,
+      setIsDragging
+    }}>
       {children}
     </TabNavigationContext.Provider>
   );

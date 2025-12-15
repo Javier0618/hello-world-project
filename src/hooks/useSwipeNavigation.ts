@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useCallback } from "react"
+import { useTabNavigation } from "@/contexts/TabNavigationContext"
 
 interface SwipeNavigationOptions {
   onSwipeLeft: () => void
@@ -21,6 +22,8 @@ export const useSwipeNavigation = ({
   currentTabIndex,
   threshold = 50,
 }: SwipeNavigationOptions) => {
+  const { setSwipeProgress, setIsDragging } = useTabNavigation()
+  
   const touchStartX = useRef<number>(0)
   const touchStartY = useRef<number>(0)
   const touchStartTime = useRef<number>(0)
@@ -62,11 +65,12 @@ export const useSwipeNavigation = ({
     touchStartY.current = e.touches[0].clientY
     touchStartTime.current = performance.now()
     isDragging.current = true
+    setIsDragging(true)
 
     if (containerRef.current) {
       containerRef.current.style.transition = "none"
     }
-  }, [containerRef])
+  }, [containerRef, setIsDragging])
 
   const handleTouchMove = useCallback((e: TouchEvent) => {
     if (!isDragging.current || !containerRef.current) return
@@ -78,12 +82,25 @@ export const useSwipeNavigation = ({
 
     if (Math.abs(diffY) > Math.abs(diffX) * 0.8 && Math.abs(diffY) > 10) {
       isDragging.current = false
+      setIsDragging(false)
+      setSwipeProgress(0)
       applyTransform(currentTranslate.current, true)
       return
     }
 
     const screenWidth = window.innerWidth
     const percentMove = (diffX / screenWidth) * 100
+    
+    // Calculate normalized progress for indicator (-1 to 1, where negative = swiping left)
+    const normalizedProgress = diffX / screenWidth
+    
+    // Only update progress if within bounds
+    if ((currentTabIndex === 0 && normalizedProgress > 0) || 
+        (currentTabIndex === totalTabs - 1 && normalizedProgress < 0)) {
+      setSwipeProgress(0)
+    } else {
+      setSwipeProgress(normalizedProgress)
+    }
     
     let newTranslate = currentTranslate.current + percentMove
 
@@ -95,11 +112,13 @@ export const useSwipeNavigation = ({
     }
 
     applyTransform(newTranslate, false)
-  }, [containerRef, currentTabIndex, totalTabs, applyTransform])
+  }, [containerRef, currentTabIndex, totalTabs, applyTransform, setSwipeProgress, setIsDragging])
 
   const handleTouchEnd = useCallback((e: TouchEvent) => {
     if (!isDragging.current || !containerRef.current) return
     isDragging.current = false
+    setIsDragging(false)
+    setSwipeProgress(0)
 
     const touchEndX = e.changedTouches[0].clientX
     const diffX = touchEndX - touchStartX.current
@@ -133,7 +152,7 @@ export const useSwipeNavigation = ({
         })
       })
     }
-  }, [currentTabIndex, totalTabs, onSwipeRight, onSwipeLeft, threshold, applyTransform])
+  }, [currentTabIndex, totalTabs, onSwipeRight, onSwipeLeft, threshold, applyTransform, setIsDragging, setSwipeProgress])
 
   useEffect(() => {
     const element = containerRef.current

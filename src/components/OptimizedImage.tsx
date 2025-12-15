@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils"
 
 const CACHE_NAME = "streamfusion-images-v3"
 const THUMBNAIL_SIZE = "w92"
+const DEFAULT_POSTER_SIZE = "w342" // Reduced from w500 for faster loading
 
 const globalImageCache = new Map<string, string>()
 
@@ -143,7 +144,7 @@ export const OptimizedImage = memo(function OptimizedImage({
 
   const optimalSize = useMemo(() => {
     if (width) return getOptimalSize(width)
-    return "w342" // Default for posters
+    return DEFAULT_POSTER_SIZE // Use smaller default
   }, [width])
 
   const cachedUrls = useMemo(() => {
@@ -243,7 +244,7 @@ export const OptimizedImage = memo(function OptimizedImage({
       }
     }
 
-    // Non-priority: use IntersectionObserver
+    // Non-priority: use IntersectionObserver with larger margin for earlier loading
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0]?.isIntersecting) {
@@ -252,7 +253,7 @@ export const OptimizedImage = memo(function OptimizedImage({
         }
       },
       {
-        rootMargin: "300px",
+        rootMargin: "500px", // Load images 500px before they enter viewport
         threshold: 0,
       },
     )
@@ -315,9 +316,9 @@ export const OptimizedImage = memo(function OptimizedImage({
   )
 })
 
-// Utility to prefetch images
+// Utility to prefetch images - optimized for speed
 export const prefetchImages = async (urls: string[]): Promise<void> => {
-  const batchSize = 6
+  const batchSize = 10 // Increased batch size
   for (let i = 0; i < urls.length; i += batchSize) {
     const batch = urls.slice(i, i + batchSize)
     await Promise.allSettled(batch.map((url) => fetchAndCacheImage(url)))
@@ -328,6 +329,39 @@ export const prefetchImages = async (urls: string[]): Promise<void> => {
 export const prefetchThumbnails = async (posterPaths: string[]): Promise<void> => {
   const urls = posterPaths.filter(Boolean).map((path) => buildTmdbUrl(path, THUMBNAIL_SIZE))
   await prefetchImages(urls)
+}
+
+// Prefetch final size images (for visible content)
+export const prefetchFinalImages = async (posterPaths: string[], size: string = DEFAULT_POSTER_SIZE): Promise<void> => {
+  const urls = posterPaths.filter(Boolean).map((path) => buildTmdbUrl(path, size))
+  await prefetchImages(urls)
+}
+
+// Initialize cache on app start - preload from Cache API to memory
+export const initializeImageCache = async (): Promise<void> => {
+  if (!("caches" in window)) return
+  
+  try {
+    const cache = await caches.open(CACHE_NAME)
+    const keys = await cache.keys()
+    
+    // Load first 50 cached images into memory for instant display
+    const loadPromises = keys.slice(0, 50).map(async (request) => {
+      const url = request.url
+      if (globalImageCache.has(url)) return
+      
+      const response = await cache.match(request)
+      if (response) {
+        const blob = await response.blob()
+        const blobUrl = URL.createObjectURL(blob)
+        globalImageCache.set(url, blobUrl)
+      }
+    })
+    
+    await Promise.allSettled(loadPromises)
+  } catch {
+    // Silently fail
+  }
 }
 
 export const getImageCacheStats = () => ({

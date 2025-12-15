@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useEffect } from "react";
+import { useMemo, useRef, useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { HomeIcon, Film, Tv } from "lucide-react";
 import { Hero } from "@/components/Hero";
@@ -16,7 +16,6 @@ import {
   type Section,
   type Media,
 } from "@/lib/sectionQueries";
-// SE CORRIGE AQUÍ: Se usan llaves. Si esto falla, revisa src/components/Navbar.tsx
 import { Navbar } from "@/components/Navbar";
 import { MobileNavbar } from "@/components/MobileNavbar";
 import {
@@ -33,6 +32,7 @@ import { Top10Carousel } from "@/components/Top10Carousel";
 import { PullToRefresh } from "@/components/PullToRefresh";
 import { useTabNavigation } from "@/contexts/TabNavigationContext";
 import { LazySection } from "@/components/LazySection";
+import { initializeImageCache, prefetchFinalImages } from "@/components/OptimizedImage";
 
 const getSessionKey = () => {
   if (typeof window !== "undefined") {
@@ -66,10 +66,20 @@ const Home = () => {
   const { activeTab, handleTabChange } = useTabNavigation();
   const queryClient = useQueryClient();
   const { screenType } = useScreenSize();
+  const [visitedTabs, setVisitedTabs] = useState<Set<string>>(new Set(["inicio"]));
 
   const carouselRef = useRef<HTMLDivElement>(null);
   const heroItemsCache = useRef<Record<string, any[]>>({});
   const sessionKey = useMemo(() => getSessionKey(), []);
+  const cacheInitialized = useRef(false);
+
+  // Initialize image cache on mount
+  useEffect(() => {
+    if (!cacheInitialized.current) {
+      cacheInitialized.current = true;
+      initializeImageCache();
+    }
+  }, []);
 
   const { data: tabSections } = useQuery({
     queryKey: ["tab-sections"],
@@ -94,23 +104,36 @@ const Home = () => {
 
   const { prefetchImages, isMobile } = useImageCacheContext();
 
+  // Aggressive prefetch on data load - use smaller size
   useEffect(() => {
-    if (isMobile && allMovies && allMovies.length > 0) {
-      const posterUrls = allMovies
+    if (allMovies && allMovies.length > 0) {
+      const posterPaths = allMovies
+        .slice(0, 30) // First 30 movies
         .filter((movie) => movie.poster_path)
-        .map((movie) => getImageUrl(movie.poster_path, "w500"));
-      prefetchImages(posterUrls);
+        .map((movie) => movie.poster_path);
+      
+      // Prefetch final size images immediately
+      prefetchFinalImages(posterPaths, "w342");
     }
-  }, [allMovies, prefetchImages, isMobile]);
+  }, [allMovies]);
 
   useEffect(() => {
-    if (isMobile && allSeries && allSeries.length > 0) {
-      const posterUrls = allSeries
+    if (allSeries && allSeries.length > 0) {
+      const posterPaths = allSeries
+        .slice(0, 30) // First 30 series
         .filter((show) => show.poster_path)
-        .map((show) => getImageUrl(show.poster_path, "w500"));
-      prefetchImages(posterUrls);
+        .map((show) => show.poster_path);
+      
+      prefetchFinalImages(posterPaths, "w342");
     }
-  }, [allSeries, prefetchImages, isMobile]);
+  }, [allSeries]);
+
+  // Track visited tabs to keep them mounted
+  useEffect(() => {
+    if (!visitedTabs.has(activeTab)) {
+      setVisitedTabs(prev => new Set([...prev, activeTab]));
+    }
+  }, [activeTab, visitedTabs]);
 
   useEffect(() => {
     if (tabSections) {
@@ -401,7 +424,8 @@ const Home = () => {
           >
             {tabs.map((tab, index) => {
               const isActive = index === currentTabIndex;
-              const shouldRender = Math.abs(index - currentTabIndex) <= 1;
+              // Keep tabs mounted if visited or adjacent to current
+              const shouldRender = visitedTabs.has(tab.id) || Math.abs(index - currentTabIndex) <= 1;
 
               return (
                 <div
@@ -418,6 +442,8 @@ const Home = () => {
                     backfaceVisibility: "hidden",
                     WebkitBackfaceVisibility: "hidden",
                     willChange: shouldRender ? "transform" : "auto",
+                    // Hide non-active tabs visually but keep mounted
+                    visibility: Math.abs(index - currentTabIndex) <= 1 ? "visible" : "hidden",
                   }}
                 >
                   {shouldRender ? (

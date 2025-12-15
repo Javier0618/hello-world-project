@@ -1,0 +1,417 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here.
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    --background: 0 0% 7%;
+    --foreground: 0 0% 98%;
+
+    --card: 0 0% 10%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 0 0% 10%;
+    --popover-foreground: 0 0% 98%;
+
+    /* Cambiando color primario de #e21d4b (346 77% 50%) a #ff9900 (20, 100%, 50%) */
+    --primary: 20, 100%, 50%;
+    --primary-foreground: 0 0% 0%;
+
+    --secondary: 0 0% 15%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 0 0% 20%;
+    --muted-foreground: 0 0% 65%;
+
+    --accent: 45 93% 58%;
+    --accent-foreground: 0 0% 10%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    /* Cambiando ring al nuevo color primario */
+    --ring: 20, 100%, 50%;
+
+    --radius: 0.75rem;
+
+    /* Actualizando gradientes y sombras al nuevo color */
+    --gradient-hero: linear-gradient(135deg, hsl(20, 100%, 50% / 0.15), hsl(0 0% 7%));
+    --gradient-card: linear-gradient(180deg, hsl(0 0% 12%), hsl(0 0% 8%));
+    --shadow-glow: 0 0 40px hsl(20, 100%, 50% / 0.3);
+    --shadow-card: 0 10px 30px -10px hsl(0 0% 0% / 0.5);
+
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .dark {
+    --background: 0 0% 7%;
+    --foreground: 0 0% 98%;
+
+    --card: 0 0% 10%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 0 0% 10%;
+    --popover-foreground: 0 0% 98%;
+
+    /* Cambiando color primario en modo oscuro */
+    --primary: 20, 100%, 50%;
+    --primary-foreground: 0 0% 0%;
+
+    --secondary: 0 0% 15%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 0 0% 20%;
+    --muted-foreground: 0 0% 65%;
+
+    --accent: 45 93% 58%;
+    --accent-foreground: 0 0% 10%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    /* Cambiando ring en modo oscuro */
+    --ring: 20, 100%, 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+
+  input,
+  textarea,
+  [contenteditable="true"] {
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+  }
+
+  img {
+    -webkit-user-drag: none;
+    -khtml-user-drag: none;
+    -moz-user-drag: none;
+    -o-user-drag: none;
+    user-drag: none;
+    pointer-events: none;
+  }
+
+  video {
+    pointer-events: auto;
+  }
+}
+
+.embla__container {
+  display: flex;
+  height: 100%;
+}
+
+.embla__slide {
+  flex: 0 0 100%;
+  min-width: 0;
+  opacity: 0;
+  transition: opacity 0.5s ease-in-out;
+}
+
+.embla__slide.is-active {
+  opacity: 1;
+}
+
+/* Agregar optimizaciones para renderizado nativo móvil */
+@layer utilities {
+  /* Clase para activar aceleración por hardware */
+  .hardware-accelerated {
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    perspective: 1000px;
+  }
+
+  /* Optimizar composición de capas */
+  .backface-hidden {
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+
+  /* Prevenir scroll bounce en iOS */
+  .no-overscroll {
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Mejorar touch response */
+  .touch-optimized {
+    touch-action: pan-y pinch-zoom;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+  }
+}
+
+/* Optimizaciones globales para móvil */
+@media (max-width: 768px) {
+  html,
+  body {
+    overscroll-behavior-x: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Prevenir selección de texto accidental durante swipe */
+  .swipe-container {
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  /* Animaciones más suaves en móvil */
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Optimización del contenedor de tabs para swipe fluido */
+  .touch-pan-y > div {
+    contain: layout style;
+    will-change: transform;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+  }
+
+  /* Cada slide con aceleración GPU */
+  .touch-pan-y > div > div {
+    contain: layout style paint;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+  }
+}
+
+/* Curvas de animación nativas tipo iOS */
+@layer utilities {
+  .ease-native {
+    transition-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+
+  .ease-native-out {
+    transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .ease-native-in-out {
+    transition-timing-function: cubic-bezier(0.45, 0, 0.55, 1);
+  }
+}
+
+/* Image cache fade-in animation */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out forwards;
+}
+
+/* Optimización de imágenes en caché para móvil */
+@media (max-width: 768px) {
+  .cached-image {
+    will-change: opacity;
+    contain: layout style paint;
+  }
+}
+
+/* Pull to Refresh Styles */
+@keyframes ptr-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes ptr-check-bounce {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.ptr-spinner {
+  animation: ptr-spin 0.8s linear infinite;
+}
+
+.ptr-indicator {
+  will-change: transform, opacity;
+  contain: layout style;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.ptr-container {
+  position: relative;
+  min-height: 100%;
+}
+
+.ptr-container.ptr-active {
+  touch-action: none;
+}
+
+@media (max-width: 768px) {
+  .ptr-indicator {
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+  }
+
+  .ptr-active {
+    overscroll-behavior-y: none;
+  }
+}
+
+/* Optimized Image Loading Styles - LQIP & Shimmer */
+
+/* Shimmer animation for image placeholders */
+.shimmer-placeholder {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.04) 20%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.04) 80%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.2s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Optimized image container */
+.optimized-image-container {
+  contain: layout style paint;
+  will-change: auto;
+}
+
+/* GPU-accelerated image transitions */
+.optimized-image {
+  will-change: opacity;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* LQIP blur effect */
+.lqip-blur {
+  filter: blur(20px);
+  transform: scale(1.1);
+  will-change: opacity;
+}
+
+/* Skeleton for poster cards */
+.poster-skeleton {
+  background: linear-gradient(135deg, hsl(0 0% 15%) 0%, hsl(0 0% 18%) 50%, hsl(0 0% 15%) 100%);
+  background-size: 200% 200%;
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes skeleton-pulse {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+/* Mobile-specific optimizations for images */
+@media (max-width: 768px) {
+  .optimized-image-container {
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+  }
+
+  /* Reduce animation complexity on mobile */
+  .shimmer-placeholder {
+    animation-duration: 1.5s;
+  }
+
+  /* Optimize touch scrolling with images */
+  .image-scroll-container {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+
+  /* Contain paint for carousel items */
+  .carousel-item-optimized {
+    contain: layout style paint;
+    content-visibility: auto;
+  }
+}
+
+/* Content visibility optimization for off-screen images */
+@supports (content-visibility: auto) {
+  .lazy-image-container {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 150px;
+  }
+
+  .poster-container {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 225px; /* 2:3 aspect ratio approximation */
+  }
+}
+
+/* High performance fade transition */
+.image-fade-enter {
+  opacity: 0;
+}
+
+.image-fade-enter-active {
+  opacity: 1;
+  transition: opacity 200ms ease-out;
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .shimmer-placeholder,
+  .poster-skeleton {
+    animation: none;
+    background: hsl(0 0% 15%);
+  }
+
+  .optimized-image {
+    transition: none;
+  }
+}

@@ -6,8 +6,17 @@ import { Link, useNavigate } from "react-router-dom"
 import RatingCircle from "@/components/ui/RatingCircle"
 import { CachedImage } from "@/components/CachedImage"
 
+// Partial type for items with incomplete data (from history/saved)
+export interface PartialMediaItem {
+  id: number
+  title?: string
+  name?: string
+  poster_path?: string | null
+  vote_average?: number | null
+}
+
 interface MovieCardProps {
-  item: Movie | TVShow
+  item: Movie | TVShow | PartialMediaItem
   type: "movie" | "tv"
   titleLines?: 1 | 2 | "full"
   onClick?: () => void
@@ -15,8 +24,9 @@ interface MovieCardProps {
 }
 
 export const MovieCard = ({ item, type, titleLines = 1, onClick, replaceNavigation = false }: MovieCardProps) => {
-  const title = "title" in item ? item.title : item.name
-  const date = "release_date" in item ? item.release_date : item.first_air_date
+  const title = "title" in item && item.title ? item.title : ("name" in item ? item.name : "")
+  const date = "release_date" in item ? (item as Movie).release_date : ("first_air_date" in item ? (item as TVShow).first_air_date : undefined)
+  const voteAverage = item.vote_average ?? 0
   const navigate = useNavigate()
 
   const handleClick = (e: React.MouseEvent) => {
@@ -53,7 +63,7 @@ export const MovieCard = ({ item, type, titleLines = 1, onClick, replaceNavigati
 
           {/* Overlays */}
           <div className="absolute top-2 left-2">
-            <RatingCircle rating={item.vote_average} />
+            <RatingCircle rating={voteAverage} />
           </div>
           <div className="absolute bottom-2 left-1 bg-black/70 px-1 py-0.2 md:px-2 md:py-1 rounded-sm">
             <span className="text-white text-[10px] md:text-xs font-semibold">

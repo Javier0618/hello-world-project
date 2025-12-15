@@ -33,7 +33,7 @@ const History = () => {
   })
 
   const deleteItemMutation = useMutation({
-    mutationFn: async (id: number) => {
+    mutationFn: async (id: string) => {
       const { error } = await supabase.from("watch_history").delete().eq("id", id)
 
       if (error) throw error

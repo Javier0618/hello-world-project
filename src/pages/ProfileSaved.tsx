@@ -33,7 +33,7 @@ const ProfileSaved = () => {
   })
 
   const deleteSavedItemMutation = useMutation({
-    mutationFn: async (id: number) => {
+    mutationFn: async (id: string) => {
       const { error } = await supabase.from("saved_items").delete().eq("id", id)
 
       if (error) throw error
